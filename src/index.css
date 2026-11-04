@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-blue-50: var(--color-indigo-50);
+  --color-blue-100: var(--color-indigo-100);
+  --color-blue-200: var(--color-indigo-200);
+  --color-blue-300: var(--color-indigo-300);
+  --color-blue-400: var(--color-indigo-400);
+  --color-blue-500: var(--color-indigo-500);
+  --color-blue-600: var(--color-indigo-600);
+  --color-blue-700: var(--color-indigo-700);
+  --color-blue-800: var(--color-indigo-800);
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+@layer base {
+  .rounded-xl.border {
+    @apply shadow-sm;
+  }
+
+  thead {
+    @apply bg-slate-50/80 text-xs uppercase tracking-wider;
+  }
+
+  tbody tr:hover {
+    @apply bg-slate-50/70;
+  }
+}
