@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useMatch, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useMatch, useNavigate } from 'react-router-dom'
 import {
-  CalendarDays, FolderGit2, FolderOpen, History, Layers, LayoutDashboard, ListChecks, LogOut, Menu, MessagesSquare, PlusCircle, Receipt,
-  RotateCcw, ShieldCheck, UserCog, Users,
+  CalendarDays, FolderGit2, FolderOpen, History, LayoutDashboard, ListChecks, LogOut, Menu, MessagesSquare, PlusCircle, Receipt, RotateCcw, Settings, UserCog, Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuth } from '../contextos/AuthContext'
 import { useDatos } from '../contextos/DatosContext'
 import type { Rol } from '../tipos'
+import Avatar from './Avatar'
+import Campana from './Campana'
+import { LogoMarca } from './Logotipo'
 import ModalNuevoProyecto from './modales/ModalNuevoProyecto'
 
 interface Enlace {
@@ -15,7 +17,7 @@ interface Enlace {
   texto: string
   icono: LucideIcon
   roles: Rol[]
-  grupo: 'principal' | 'administracion'
+  grupo: 'principal' | 'administracion' | 'cuenta'
 }
 
 const TODOS: Rol[] = ['administrador', 'comercial', 'finanzas', 'desarrollador']
@@ -28,10 +30,10 @@ const enlaces: Enlace[] = [
   { ruta: '/calendario', texto: 'Calendario financiero', icono: CalendarDays, roles: ['administrador', 'comercial', 'finanzas'], grupo: 'principal' },
   { ruta: '/reuniones', texto: 'Reuniones', icono: MessagesSquare, roles: TODOS, grupo: 'principal' },
   { ruta: '/documentos', texto: 'Documentación', icono: FolderOpen, roles: TODOS, grupo: 'principal' },
-  { ruta: '/ampliaciones', texto: 'Ampliaciones', icono: Layers, roles: ['administrador', 'comercial'], grupo: 'principal' },
   { ruta: '/usuarios', texto: 'Usuarios', icono: UserCog, roles: ['administrador'], grupo: 'administracion' },
   { ruta: '/desarrolladores', texto: 'Desarrolladores', icono: Users, roles: ['administrador'], grupo: 'administracion' },
   { ruta: '/auditoria', texto: 'Auditoría', icono: History, roles: ['administrador'], grupo: 'administracion' },
+  { ruta: '/configuracion', texto: 'Configuración', icono: Settings, roles: TODOS, grupo: 'cuenta' },
 ]
 
 const CONSULTA_ESCRITORIO = '(min-width: 1024px)'
@@ -52,9 +54,6 @@ const guardarPreferencia = (abierto: boolean) => {
     return
   }
 }
-
-const iniciales = (nombre: string): string =>
-  nombre.split(' ').map((parte) => parte[0]).slice(0, 2).join('').toUpperCase()
 
 export default function Layout() {
   const { usuario, cerrarSesion } = useAuth()
@@ -90,6 +89,7 @@ export default function Layout() {
   const visibles = enlaces.filter((e) => e.roles.includes(usuario.rol))
   const principales = visibles.filter((e) => e.grupo === 'principal')
   const administracion = visibles.filter((e) => e.grupo === 'administracion')
+  const cuenta = visibles.filter((e) => e.grupo === 'cuenta')
 
   const alternarMenu = () => {
     const siguiente = !menuAbierto
@@ -135,17 +135,12 @@ export default function Layout() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-500 shadow-lg shadow-indigo-500/20">
-              <ShieldCheck className="h-6 w-6 text-white" />
-            </div>
+            <LogoMarca tamano={38} />
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold tracking-tight">Cobranzas</span>
-                <span className="hidden rounded border border-indigo-500/30 bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-300 sm:inline">
-                  Control & Dossier
-                </span>
-              </div>
-              <p className="hidden text-xs text-slate-400 md:block">Control documental y cobranzas de proyectos de software</p>
+              <span className="text-lg font-bold leading-tight tracking-tight">
+                Project<span className="bg-gradient-to-r from-indigo-300 to-emerald-300 bg-clip-text text-transparent">Flow</span>
+              </span>
+              <p className="hidden text-xs text-slate-400 md:block">Seguimiento de proyectos de software: avance, equipo y cobros</p>
             </div>
           </div>
 
@@ -176,10 +171,15 @@ export default function Layout() {
               </button>
             )}
 
-            <div className="hidden text-right md:block">
-              <p className="text-sm font-medium leading-tight">{usuario.nombre}</p>
-              <p className="text-xs capitalize leading-tight text-slate-400">{usuario.rol}</p>
-            </div>
+            <Campana />
+
+            <Link to="/configuracion" title="Configuración de la cuenta" className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-slate-800">
+              <div className="hidden text-right md:block">
+                <p className="text-sm font-medium leading-tight">{usuario.nombre}</p>
+                <p className="text-xs capitalize leading-tight text-slate-400">{usuario.rol}</p>
+              </div>
+              <Avatar usuario={usuario} tamano={34} className="ring-2 ring-slate-700" />
+            </Link>
 
             {usuario.rol === 'administrador' && (
               <button
@@ -220,18 +220,20 @@ export default function Layout() {
               <div className="space-y-1">{administracion.map(renderEnlace)}</div>
             </>
           )}
+
+          <p className="mt-6 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mi cuenta</p>
+          <div className="space-y-1">{cuenta.map(renderEnlace)}</div>
         </nav>
 
-        <div className="shrink-0 border-t border-slate-800 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-300">
-              {iniciales(usuario.nombre)}
-            </div>
-            <div className="min-w-0">
+        <div className="shrink-0 border-t border-slate-800 p-3">
+          <Link to="/configuracion" onClick={alElegirOpcion} title="Configuración de la cuenta" className="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-slate-800">
+            <Avatar usuario={usuario} tamano={36} />
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">{usuario.nombre}</p>
               <p className="truncate text-xs capitalize text-slate-400">{usuario.rol}</p>
             </div>
-          </div>
+            <Settings className="h-4 w-4 shrink-0 text-slate-500" />
+          </Link>
         </div>
       </aside>
 
@@ -243,8 +245,9 @@ export default function Layout() {
         <footer className="mt-8 border-t border-slate-200 bg-white py-5 text-xs text-slate-500">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 sm:flex-row sm:px-6 lg:px-8">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-700">Cobranzas</span>
-              <span>• Plataforma de control documental y cobranzas de software · Datos demostrativos</span>
+              <LogoMarca tamano={18} />
+              <span className="font-bold text-slate-700">ProjectFlow</span>
+              <span>• Seguimiento de proyectos de software · Datos demostrativos</span>
             </div>
             <div className="flex items-center gap-4 text-[11px]">
               <span>Control de hitos</span>

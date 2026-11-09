@@ -5,56 +5,13 @@ import DonutGrafico from '../../componentes/graficos/DonutGrafico'
 import GraficoFlujoMensual from '../../componentes/graficos/GraficoFlujoMensual'
 import EtiquetaEstado from '../../componentes/EtiquetaEstado'
 import TarjetaMetrica from '../../componentes/TarjetaMetrica'
+import { BarraAvance, COLORES_ESTADO, Leyenda, Panel } from '../../componentes/Panel'
 import { useAuditoria } from '../../contextos/AuditoriaContext'
 import { useAuth } from '../../contextos/AuthContext'
 import { useDatos } from '../../contextos/DatosContext'
+import { totalPorTipo } from '../../utils/adicionales'
 import { formatoMoneda, redondear } from '../../utils/finanzas'
 import { datosDeProyecto, flujoMensual, proyectosEnAtencion, progresoEntrega, resumenFinanciero } from '../../utils/indicadores'
-
-const COLORES_ESTADO: Record<string, string> = {
-  Prototipo: '#f59e0b',
-  'En desarrollo': '#0ea5e9',
-  'En entrega': '#6366f1',
-  Cerrado: '#10b981',
-}
-
-function Panel({ titulo, subtitulo, children, className = '' }: { titulo: string; subtitulo?: string; children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
-      <div className="mb-4">
-        <h3 className="text-sm font-bold text-slate-900">{titulo}</h3>
-        {subtitulo && <p className="text-xs text-slate-500">{subtitulo}</p>}
-      </div>
-      {children}
-    </section>
-  )
-}
-
-function Leyenda({ color, nombre, valor }: { color: string; nombre: string; valor: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 text-sm">
-      <span className="flex items-center gap-2 text-slate-600">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-        {nombre}
-      </span>
-      <span className="font-semibold tabular-nums text-slate-900">{valor}</span>
-    </div>
-  )
-}
-
-function BarraAvance({ etiqueta, porcentaje, color }: { etiqueta: string; porcentaje: number; color: string }) {
-  return (
-    <div>
-      <div className="mb-1 flex justify-between text-[11px] font-medium text-slate-500">
-        <span>{etiqueta}</span>
-        <span className="tabular-nums text-slate-700">{porcentaje} %</span>
-      </div>
-      <div className="h-2 rounded-full bg-slate-100">
-        <div className="h-2 rounded-full" style={{ width: `${Math.min(100, porcentaje)}%`, backgroundColor: color }} />
-      </div>
-    </div>
-  )
-}
 
 export default function DashboardDireccion() {
   const { usuarios } = useAuth()
@@ -154,6 +111,17 @@ export default function DashboardDireccion() {
                     <EtiquetaEstado estado={proyecto.estado} />
                   </div>
                 </div>
+                {(() => {
+                  const t = totalPorTipo(contratos, proyecto.id)
+                  return (
+                    <p className="-mt-1.5 mb-3 text-xs text-slate-500">
+                      Contratado <strong className="text-slate-800">{formatoMoneda(t.total)}</strong>
+                      {t.ampliaciones + t.nuevos > 0 ? (
+                        <> = original {formatoMoneda(t.original)} <span className="font-semibold text-emerald-600">+ ampliaciones {formatoMoneda(t.ampliaciones + t.nuevos)}</span></>
+                      ) : ' · sin ampliaciones'}
+                    </p>
+                  )
+                })()}
                 <div className="grid gap-3 sm:grid-cols-2">
                   <BarraAvance etiqueta="Cobranza" porcentaje={resumen.progresoCobro} color="#10b981" />
                   <BarraAvance etiqueta="Entregables" porcentaje={entrega} color="#6366f1" />

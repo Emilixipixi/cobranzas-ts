@@ -6,6 +6,7 @@ interface Props {
   valor: string
   detalle?: string
   tono?: 'neutro' | 'ok' | 'alerta' | 'peligro'
+  icono?: LucideIcon
 }
 
 const ICONOS: [RegExp, LucideIcon][] = [
@@ -27,8 +28,8 @@ const TONOS = {
   peligro: { titulo: 'text-rose-600', valor: 'text-rose-600', chip: 'bg-rose-100 text-rose-600' },
 }
 
-export default function TarjetaMetrica({ titulo, valor, detalle, tono = 'neutro' }: Props) {
-  const Icono = ICONOS.find(([patron]) => patron.test(titulo))?.[1] ?? TrendingUp
+export default function TarjetaMetrica({ titulo, valor, detalle, tono = 'neutro', icono }: Props) {
+  const Icono = icono ?? ICONOS.find(([patron]) => patron.test(titulo))?.[1] ?? TrendingUp
   const colores = TONOS[tono]
 
   return (

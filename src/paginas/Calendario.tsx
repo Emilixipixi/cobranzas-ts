@@ -6,7 +6,7 @@ import TarjetaMetrica from '../componentes/TarjetaMetrica'
 import { useAuth } from '../contextos/AuthContext'
 import { useDatos } from '../contextos/DatosContext'
 import { HOY } from '../datos/datosEjemplo'
-import { entrada } from '../utils/estilos'
+import { entradaCompacta } from '../utils/estilos'
 import { formatoFecha, formatoMoneda, redondear, sumarDias } from '../utils/finanzas'
 import { filasCartera } from '../utils/indicadores'
 import type { Cuota, Proyecto } from '../tipos'
@@ -157,7 +157,7 @@ export default function Calendario() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Calendario financiero</h2>
         <div className="flex flex-wrap items-center gap-2">
-          <select className={`${entrada} max-w-xs`} value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
+          <select className={`${entradaCompacta} max-w-xs`} value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
             <option value="todos">Todos los proyectos</option>
             {proyectos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>

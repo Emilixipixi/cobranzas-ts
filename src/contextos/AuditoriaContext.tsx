@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useAlertas } from './AlertasContext'
+import type { TipoAlerta } from './AlertasContext'
 import { useAuth } from './AuthContext'
 import type { RegistroAuditoria } from '../tipos'
 
@@ -10,6 +12,12 @@ interface AuditoriaContextoValor {
 }
 
 const AuditoriaContext = createContext<AuditoriaContextoValor | null>(null)
+
+const tipoDeAccion = (accion: string): TipoAlerta => {
+  if (/elimin|desasign|desvincul/i.test(accion)) return 'peligro'
+  if (/modific|actualiz|restablec|nombr/i.test(accion)) return 'info'
+  return 'exito'
+}
 
 const CLAVE_AUDITORIA = 'cobranzasAuditoriaV1'
 
@@ -25,6 +33,7 @@ const cargarRegistros = (): RegistroAuditoria[] => {
 
 export function AuditoriaProvider({ children }: { children: ReactNode }) {
   const { usuario } = useAuth()
+  const { notificar } = useAlertas()
   const [registros, setRegistros] = useState<RegistroAuditoria[]>(cargarRegistros)
 
   useEffect(() => {
@@ -47,6 +56,7 @@ export function AuditoriaProvider({ children }: { children: ReactNode }) {
       proyectoId,
     }
     setRegistros((anteriores) => [nuevo, ...anteriores])
+    notificar(accion, detalle, tipoDeAccion(accion))
   }
 
   const limpiar = () => setRegistros([])

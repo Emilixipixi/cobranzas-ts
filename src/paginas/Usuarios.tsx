@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Briefcase, Code2, Landmark, ShieldCheck, Trash2, UserPlus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import Avatar from '../componentes/Avatar'
 import ModalUsuario, { ETIQUETAS_ROL } from '../componentes/modales/ModalUsuario'
 import { useAuditoria } from '../contextos/AuditoriaContext'
 import { useAuth } from '../contextos/AuthContext'
@@ -90,8 +91,11 @@ export default function Usuarios() {
               return (
                 <tr key={u.id} className="border-t border-slate-100">
                   <td className="whitespace-nowrap p-3 font-medium text-slate-900">
-                    {u.nombre}
-                    {esYo && <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-500">Tú</span>}
+                    <span className="flex items-center gap-2.5">
+                      <Avatar usuario={u} tamano={30} />
+                      {u.nombre}
+                      {esYo && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-500">Tú</span>}
+                    </span>
                   </td>
                   <td className="p-3 font-mono text-xs text-slate-600">{u.correo}</td>
                   <td className="p-3">

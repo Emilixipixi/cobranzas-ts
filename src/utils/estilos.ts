@@ -1,4 +1,13 @@
-export const entrada = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-100'
+const baseEntrada = 'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-100'
+
+/** Campo de formulario: ocupa todo el ancho disponible. */
+export const entrada = `w-full ${baseEntrada}`
+
+/**
+ * Campo para filtros y barras de herramientas: sin ancho fijo, para que el ancho lo
+ * defina quien lo usa (w-auto, w-56…) y quede en la misma línea que los botones.
+ */
+export const entradaCompacta = baseEntrada
 
 export const etiquetaCampo = 'mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500'
 

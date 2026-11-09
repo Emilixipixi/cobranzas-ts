@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import AvisoHorasExtra from '../../componentes/AvisoHorasExtra'
 import EtiquetaEstado from '../../componentes/EtiquetaEstado'
 import TarjetaMetrica from '../../componentes/TarjetaMetrica'
 import { useDatos } from '../../contextos/DatosContext'
@@ -29,6 +30,7 @@ export default function DashboardDesarrollador({ desarrollador }: { desarrollado
 
   return (
     <>
+      <AvisoHorasExtra desarrollador={desarrollador} />
       <p className="mb-4 text-sm text-slate-600">{desarrollador.nombre} · {desarrollador.especialidad} · {desarrollador.tecnologias.join(', ')}</p>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <TarjetaMetrica titulo="Mis proyectos" valor={String(misProyectos.length)} />

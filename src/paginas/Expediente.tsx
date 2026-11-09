@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Building2, CalendarClock, ExternalLink, FolderOpen, History, Layers, Pencil, Receipt, Sparkles, Trash2, UserRound, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Building2, CalendarClock, Clock, ExternalLink, FilePlus2, FolderOpen, GitCommitHorizontal, History, Layers, Pencil, Receipt, Sparkles, Trash2, UserRound, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import BotonInforme from '../componentes/BotonInforme'
 import EtiquetaEstado from '../componentes/EtiquetaEstado'
+import PestanaAdicionales from '../componentes/expediente/PestanaAdicionales'
 import PestanaAuditoria from '../componentes/expediente/PestanaAuditoria'
 import PestanaDocumentos from '../componentes/expediente/PestanaDocumentos'
 import PestanaEquipo from '../componentes/expediente/PestanaEquipo'
+import PestanaEvidencias from '../componentes/expediente/PestanaEvidencias'
+import PestanaHoras from '../componentes/expediente/PestanaHoras'
 import ModalEditarProyecto from '../componentes/modales/ModalEditarProyecto'
 import ModalEliminarProyecto from '../componentes/modales/ModalEliminarProyecto'
 import ModalRecordatorio from '../componentes/modales/ModalRecordatorio'
@@ -16,9 +20,13 @@ import { useAuth } from '../contextos/AuthContext'
 import { useDatos } from '../contextos/DatosContext'
 import { HOY } from '../datos/datosEjemplo'
 import { diasEntre, formatoFecha, formatoMoneda, resumenPlan } from '../utils/finanzas'
+import { totalDeProyecto } from '../utils/horas'
+import { puedeVerReunion } from '../utils/reuniones'
 import { datosDeProyecto, filasCartera, progresoEntrega, resumenFinanciero } from '../utils/indicadores'
 
-type Pestana = 'cobranzas' | 'documentos' | 'equipo' | 'auditoria'
+type Pestana = 'cobranzas' | 'documentos' | 'adicionales' | 'equipo' | 'evidencias' | 'horas' | 'auditoria'
+
+const PESTANAS: Pestana[] = ['cobranzas', 'documentos', 'adicionales', 'equipo', 'evidencias', 'horas', 'auditoria']
 
 const limitar = (n: number): number => Math.max(0, Math.min(100, n))
 
@@ -39,8 +47,18 @@ export default function Expediente() {
   const { usuario, usuarios } = useAuth()
   const navegar = useNavigate()
   const { registros } = useAuditoria()
-  const { proyectos, clientes, contratos, cuotas, cobros, documentos, asignaciones } = useDatos()
+  const { proyectos, clientes, contratos, cuotas, cobros, documentos, asignaciones, horas, evidencias, desarrolladores, adicionales } = useDatos()
+  const [parametros, setParametros] = useSearchParams()
   const [pestana, setPestana] = useState<Pestana>(usuario?.rol === 'desarrollador' ? 'equipo' : 'cobranzas')
+
+  // Las notificaciones pueden abrir una pestaña concreta (?pestana=evidencias).
+  const pedida = parametros.get('pestana') as Pestana | null
+  useEffect(() => {
+    if (pedida && PESTANAS.includes(pedida)) {
+      setPestana(pedida)
+      setParametros({}, { replace: true })
+    }
+  }, [pedida, setParametros])
   const [recordando, setRecordando] = useState(false)
   const [accion, setAccion] = useState<'editar' | 'eliminar' | null>(null)
 
@@ -71,8 +89,11 @@ export default function Expediente() {
 
   const pestanas: { id: Pestana; titulo: string; icono: LucideIcon; cantidad: number; visible: boolean }[] = [
     { id: 'cobranzas', titulo: 'Cobranzas e hitos', icono: Receipt, cantidad: datos.cuotas.length, visible: verDinero },
-    { id: 'documentos', titulo: 'Expediente documental', icono: FolderOpen, cantidad: documentos.filter((d) => d.proyectoId === proyecto.id).length, visible: true },
+    { id: 'documentos', titulo: 'Expediente documental', icono: FolderOpen, cantidad: documentos.filter((d) => d.proyectoId === proyecto.id && puedeVerReunion(usuario, d, desarrolladores, asignaciones)).length, visible: true },
+    { id: 'adicionales', titulo: 'Adicionales', icono: FilePlus2, cantidad: adicionales.filter((a) => a.proyectoId === proyecto.id && (verDinero || a.estado === 'aprobado')).length, visible: true },
     { id: 'equipo', titulo: 'Equipo y plazos', icono: Users, cantidad: asignaciones.filter((a) => a.proyectoId === proyecto.id).length, visible: true },
+    { id: 'evidencias', titulo: 'Evidencias', icono: GitCommitHorizontal, cantidad: evidencias.filter((e) => e.proyectoId === proyecto.id).length, visible: true },
+    { id: 'horas', titulo: 'Horas del equipo', icono: Clock, cantidad: Math.round(totalDeProyecto(horas, proyecto.id)), visible: true },
     { id: 'auditoria', titulo: 'Auditoría', icono: History, cantidad: registros.filter((r) => r.proyectoId === proyecto.id).length, visible: verDinero },
   ]
 
@@ -109,6 +130,7 @@ export default function Expediente() {
             )}
             {esAdministrador && (
               <>
+                <BotonInforme proyecto={proyecto} />
                 <button
                   onClick={() => setAccion('editar')}
                   className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
@@ -211,7 +233,7 @@ export default function Expediente() {
         </div>
       )}
 
-      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-slate-200">
+      <div className="mb-5 flex flex-wrap gap-x-0.5 border-b border-slate-200">
         {pestanas.filter((p) => p.visible).map((p) => {
           const Icono = p.icono
           const activa = pestana === p.id
@@ -219,7 +241,7 @@ export default function Expediente() {
             <button
               key={p.id}
               onClick={() => setPestana(p.id)}
-              className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-3 text-sm font-semibold transition-all ${activa ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}
+              className={`-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition-all ${activa ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}
             >
               <Icono className="h-4 w-4" />
               {p.titulo}
@@ -243,7 +265,10 @@ export default function Expediente() {
         </>
       )}
       {pestana === 'documentos' && <PestanaDocumentos proyectoId={proyecto.id} puedeEditar={puedeEditar} />}
+      {pestana === 'adicionales' && <PestanaAdicionales proyecto={proyecto} />}
       {pestana === 'equipo' && <PestanaEquipo proyecto={proyecto} puedeEditar={puedeEditar} />}
+      {pestana === 'evidencias' && <PestanaEvidencias proyecto={proyecto} />}
+      {pestana === 'horas' && <PestanaHoras proyecto={proyecto} />}
       {pestana === 'auditoria' && verDinero && <PestanaAuditoria proyectoId={proyecto.id} />}
       {recordando && prioritaria && <ModalRecordatorio cuota={prioritaria.cuota} onCerrar={() => setRecordando(false)} />}
       {accion === 'editar' && <ModalEditarProyecto proyecto={proyecto} onCerrar={() => setAccion(null)} />}

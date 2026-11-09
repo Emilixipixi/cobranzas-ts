@@ -26,6 +26,8 @@ interface AuthContextoValor {
   crearUsuario: (datos: DatosNuevoUsuario) => ResultadoCreacion
   eliminarUsuario: (id: string) => string | null
   restablecerUsuarios: () => void
+  actualizarFoto: (foto: string | null) => string | null
+  cambiarClave: (actual: string, nueva: string) => string | null
 }
 
 const AuthContext = createContext<AuthContextoValor | null>(null)
@@ -59,9 +61,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [usuarios])
 
+  // Si el administrador crea o elimina usuarios en otra pestaña, esta pestaña se entera al instante.
+  useEffect(() => {
+    const alCambiarEnOtraPestana = (e: StorageEvent) => {
+      if (e.key !== CLAVE_USUARIOS) return
+      const lista = cargarUsuarios()
+      setUsuarios(lista)
+      // Si eliminaron al usuario con sesión abierta aquí, se cierra su sesión.
+      setUsuario((actual) => (actual ? lista.find((u) => u.id === actual.id) ?? null : actual))
+    }
+    window.addEventListener('storage', alCambiarEnOtraPestana)
+    return () => window.removeEventListener('storage', alCambiarEnOtraPestana)
+  }, [])
+
   const iniciarSesion = (correo: string, clave: string): string | null => {
-    const encontrado = usuarios.find((u) => u.correo === correo.trim().toLowerCase() && u.clave === clave)
-    if (!encontrado) return 'Correo o contraseña incorrectos'
+    // Se lee la lista guardada más reciente: el usuario pudo crearse en otra pestaña hace un momento.
+    const vigentes = cargarUsuarios()
+    if (vigentes.length !== usuarios.length || vigentes.some((u, i) => u.id !== usuarios[i]?.id)) setUsuarios(vigentes)
+    const correoLimpio = correo.trim().toLowerCase()
+    const encontrado = vigentes.find((u) => u.correo === correoLimpio && u.clave === clave)
+    if (!encontrado) {
+      return vigentes.some((u) => u.correo === correoLimpio)
+        ? 'La contraseña no coincide. Si es un usuario nuevo, usa la contraseña temporal que se generó al crearlo.'
+        : 'Correo o contraseña incorrectos'
+    }
     setCandidato(encontrado)
     return null
   }
@@ -119,6 +142,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null
   }
 
+  /** Aplica cambios a la cuenta con sesión abierta y a la lista guardada. */
+  const actualizarCuenta = (cambios: (u: Usuario) => Usuario) => {
+    if (!usuario) return
+    const actualizado = cambios(usuario)
+    setUsuario(actualizado)
+    setUsuarios((previos) => previos.map((u) => (u.id === usuario.id ? actualizado : u)))
+  }
+
+  const actualizarFoto = (foto: string | null): string | null => {
+    if (!usuario) return 'Inicia sesión para cambiar tu foto'
+    actualizarCuenta((u) => {
+      if (foto) return { ...u, foto }
+      const { foto: _f, ...resto } = u
+      return resto
+    })
+    return null
+  }
+
+  const cambiarClave = (actual: string, nueva: string): string | null => {
+    if (!usuario) return 'Inicia sesión para cambiar tu contraseña'
+    const vigente = cargarUsuarios().find((u) => u.id === usuario.id) ?? usuario
+    if (vigente.clave !== actual) return 'La contraseña actual no es correcta'
+    if (nueva.length < 8) return 'La nueva contraseña debe tener al menos 8 caracteres'
+    if (!/[A-Za-z]/.test(nueva) || !/\d/.test(nueva)) return 'La nueva contraseña debe combinar letras y números'
+    if (nueva === actual) return 'La nueva contraseña debe ser distinta de la actual'
+    actualizarCuenta((u) => ({ ...u, clave: nueva }))
+    return null
+  }
+
   const restablecerUsuarios = () => {
     const actual = usuarios.find((u) => u.id === usuario?.id)
     const conservar = actual && !usuariosIniciales.some((u) => u.id === actual.id) ? [actual] : []
@@ -138,6 +190,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         crearUsuario,
         eliminarUsuario,
         restablecerUsuarios,
+        actualizarFoto,
+        cambiarClave,
       }}
     >
       {children}

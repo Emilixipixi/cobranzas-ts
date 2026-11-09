@@ -1,15 +1,15 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './componentes/Layout'
 import RutaProtegida from './componentes/RutaProtegida'
 import Auditoria from './paginas/Auditoria'
 import Calendario from './paginas/Calendario'
+import Configuracion from './paginas/Configuracion'
 import Cobranza from './paginas/Cobranza'
 import Dashboard from './paginas/Dashboard'
 import Desarrolladores from './paginas/Desarrolladores'
 import Documentos from './paginas/Documentos'
 import Expediente from './paginas/Expediente'
 import Login from './paginas/Login'
-import Pendiente from './paginas/Pendiente'
 import PlanPagos from './paginas/PlanPagos'
 import Proyectos from './paginas/Proyectos'
 import Reuniones from './paginas/Reuniones'
@@ -39,6 +39,7 @@ export default function App() {
         />
         <Route path="documentos" element={<Documentos />} />
         <Route path="reuniones" element={<Reuniones />} />
+        <Route path="configuracion" element={<Configuracion />} />
         <Route
           path="plan-pagos"
           element={
@@ -80,7 +81,7 @@ export default function App() {
             </RutaProtegida>
           }
         />
-        <Route path="*" element={<Pendiente />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
   )

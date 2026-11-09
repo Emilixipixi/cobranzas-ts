@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { HOY } from '../../datos/datosEjemplo'
 import { useDatos } from '../../contextos/DatosContext'
 import { botonSecundario } from '../../utils/estilos'
+import { equipoDeProyecto, esJefe, horasDiariasDe, redondearHoras } from '../../utils/equipo'
 import { diasEntre, formatoFecha, sumarDias } from '../../utils/finanzas'
 import { datosDeProyecto, progresoEntrega } from '../../utils/indicadores'
 import EtiquetaEstado from '../EtiquetaEstado'
@@ -15,12 +16,12 @@ interface Props {
 }
 
 export default function PestanaEquipo({ proyecto, puedeEditar }: Props) {
-  const { asignaciones, desarrolladores, contratos, cuotas, quitarAsignacion } = useDatos()
+  const { asignaciones, desarrolladores, contratos, cuotas, quitarAsignacion, nombrarJefe } = useDatos()
   const [asignando, setAsignando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const equipo = asignaciones.filter((a) => a.proyectoId === proyecto.id)
-  const horasTotales = equipo.reduce((suma, a) => suma + a.horasSemana, 0)
+  const equipo = equipoDeProyecto(asignaciones, proyecto.id)
+  const horasTotales = redondearHoras(equipo.reduce((suma, a) => suma + a.horasSemana, 0))
   const entregables = datosDeProyecto(proyecto.id, contratos, cuotas).cuotas.filter((q) => q.entregable !== '')
   const limite = sumarDias(proyecto.fechaEntrega, proyecto.diasContingencia)
   const diasRestantes = diasEntre(HOY, proyecto.fechaEntrega)
@@ -41,40 +42,55 @@ export default function PestanaEquipo({ proyecto, puedeEditar }: Props) {
 
       <div className="mb-4 rounded-xl border border-slate-200 bg-white">
         <div className="flex items-center justify-between p-4">
-          <h3 className="text-sm font-semibold">Equipo asignado · {horasTotales} h/semana</h3>
-          {puedeEditar && <button className={botonSecundario} onClick={() => setAsignando(true)}>+ Asignar</button>}
+          <h3 className="text-sm font-semibold">Equipo asignado · {equipo.length} {equipo.length === 1 ? 'persona' : 'personas'} · {horasTotales} h/semana</h3>
+          {puedeEditar && <button className={botonSecundario} onClick={() => setAsignando(true)}>+ Agregar colaborador</button>}
         </div>
         {error && <p className="mx-4 mb-3 rounded-lg bg-red-100 px-3 py-2 text-sm text-red-800">{error}</p>}
-        <table className="w-full text-sm">
-          <thead className="text-left text-slate-500">
-            <tr>
-              <th className="p-3 font-medium">Desarrollador</th>
-              <th className="p-3 font-medium">Especialidad</th>
-              <th className="p-3 font-medium">Tecnologías</th>
-              <th className="p-3 text-right font-medium">Horas/sem</th>
-              {puedeEditar && <th className="p-3" />}
-            </tr>
-          </thead>
-          <tbody>
-            {equipo.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-slate-400">Sin desarrolladores asignados</td></tr>}
-            {equipo.map((a) => {
-              const dev = desarrolladores.find((d) => d.id === a.desarrolladorId)
-              return (
-                <tr key={a.id} className="border-t border-slate-100">
-                  <td className="p-3">{dev?.nombre}</td>
-                  <td className="p-3">{dev?.especialidad}</td>
-                  <td className="p-3 text-xs text-slate-600">{dev?.tecnologias.join(', ')}</td>
-                  <td className="p-3 text-right tabular-nums">{a.horasSemana}</td>
-                  {puedeEditar && (
-                    <td className="p-3 text-right">
-                      <button className="text-xs text-red-700 hover:underline" onClick={() => setError(quitarAsignacion(a.id))}>Quitar</button>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-slate-500">
+              <tr>
+                <th className="p-3 font-medium">Persona</th>
+                <th className="p-3 font-medium">Especialidad</th>
+                <th className="p-3 font-medium">Tecnologías</th>
+                <th className="p-3 text-right font-medium">Horas diarias</th>
+                <th className="p-3 text-right font-medium">Horas por semana</th>
+                {puedeEditar && <th className="p-3" />}
+              </tr>
+            </thead>
+            <tbody>
+              {equipo.length === 0 && <tr><td colSpan={6} className="p-4 text-center text-slate-400">Sin desarrolladores asignados</td></tr>}
+              {equipo.map((a) => {
+                const dev = desarrolladores.find((d) => d.id === a.desarrolladorId)
+                const jefe = esJefe(a, equipo)
+                return (
+                  <tr key={a.id} className="border-t border-slate-100">
+                    <td className="whitespace-nowrap p-3">
+                      <span className="font-medium text-slate-900">{dev?.nombre}</span>
+                      <span className={`ml-2 rounded-full border px-2 py-0.5 text-[11px] font-medium ${jefe ? 'border-indigo-200 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
+                        {jefe ? 'Jefe de proyecto' : 'Colaborador'}
+                      </span>
                     </td>
-                  )}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    <td className="p-3">{dev?.especialidad}</td>
+                    <td className="p-3 text-xs text-slate-600">{dev?.tecnologias.join(', ')}</td>
+                    <td className="p-3 text-right tabular-nums">{horasDiariasDe(a)}</td>
+                    <td className="p-3 text-right tabular-nums">{a.horasSemana}</td>
+                    {puedeEditar && (
+                      <td className="whitespace-nowrap p-3 text-right">
+                        {!jefe && (
+                          <button className="mr-3 text-xs text-indigo-700 hover:underline" onClick={() => setError(nombrarJefe(proyecto.id, a.desarrolladorId))}>
+                            Nombrar jefe
+                          </button>
+                        )}
+                        <button className="text-xs text-red-700 hover:underline" onClick={() => setError(quitarAsignacion(a.id))}>Quitar</button>
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white">

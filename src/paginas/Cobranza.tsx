@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { Encabezado } from '../componentes/Panel'
 import PanelCobranza from '../componentes/PanelCobranza'
+import RespaldoCobranza from '../componentes/RespaldoCobranza'
 import TarjetaMetrica from '../componentes/TarjetaMetrica'
 import { useAuth } from '../contextos/AuthContext'
 import { useDatos } from '../contextos/DatosContext'
-import { entrada } from '../utils/estilos'
+import { entradaCompacta } from '../utils/estilos'
 import { formatoMoneda } from '../utils/finanzas'
 import { filasCartera, resumenFinanciero } from '../utils/indicadores'
 
@@ -24,7 +26,7 @@ export default function Cobranza() {
 
   return (
     <>
-      <h2 className="mb-4 text-xl font-semibold">Control de cobranza</h2>
+      <Encabezado titulo="Control de cobranza" subtitulo="Cuotas, facturas emitidas y comprobantes de cada cobro" />
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <TarjetaMetrica titulo="Por facturar" valor={formatoMoneda(resumen.porFacturar)} />
         <TarjetaMetrica titulo="Facturado por cobrar" valor={formatoMoneda(resumen.facturadoPendiente)} />
@@ -32,15 +34,18 @@ export default function Cobranza() {
         <TarjetaMetrica titulo="Cobrado" valor={formatoMoneda(resumen.cobrado)} tono="ok" />
       </div>
       <div className="mb-3 flex flex-wrap gap-2">
-        <select className={`${entrada} max-w-xs`} value={estado} onChange={(e) => setEstado(e.target.value)}>
+        <select className={`${entradaCompacta} max-w-xs`} value={estado} onChange={(e) => setEstado(e.target.value)}>
           {ESTADOS.map((e) => <option key={e}>{e}</option>)}
         </select>
-        <select className={`${entrada} max-w-xs`} value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
+        <select className={`${entradaCompacta} max-w-xs`} value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
           <option value="todos">Todos los proyectos</option>
           {proyectos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
         </select>
       </div>
       <PanelCobranza cuotas={filtradas.map((f) => f.cuota)} puedeOperar={puedeOperar} />
+      <div className="mt-5">
+        <RespaldoCobranza puedeOperar={puedeOperar} />
+      </div>
     </>
   )
 }

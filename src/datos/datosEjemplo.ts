@@ -1,5 +1,5 @@
-import type { Almacen, Asignacion, Cliente, Cobro, Contrato, Cuota, Desarrollador, Documento, Proyecto, Usuario } from '../tipos'
-
+import { diasLaborablesTranscurridos, semanasEntre, inicioSemana } from '../utils/semanas'
+import type { Almacen, Asignacion, Cliente, Cobro, Contrato, Cuota, Desarrollador, Documento, Proyecto, RegistroHoras, Usuario, Evidencia, Adicional } from '../tipos'
 export const HOY = '2026-10-29'
 
 export const CODIGO_2FA = '123456'
@@ -33,7 +33,7 @@ export const proyectos: Proyecto[] = [
   {
     id: 'P3', codigo: 'PRY-003', nombre: 'Portal de proveedores', descripcion: 'Portal para registro y cotización de proveedores.',
     clienteId: 'C1', responsableId: 'U2', mesesOfrecidos: 5, fechaInicio: '2026-11-15', fechaEntrega: '2027-04-15', diasContingencia: 20,
-    estado: 'Prototipo', prototipo: 'Presentado', urlPrototipo: 'https://prototipo.demo/portal-proveedores', repositorio: '',
+    estado: 'Prototipo', prototipo: 'Presentado', fechaPrototipo: '2026-11-06', urlPrototipo: 'https://prototipo.demo/portal-proveedores', repositorio: '',
   },
   {
     id: 'P4', codigo: 'PRY-004', nombre: 'Sistema de citas', descripcion: 'Sistema web de agendamiento de citas y recordatorios para pacientes.',
@@ -55,7 +55,7 @@ export const cuotasIniciales: Cuota[] = [
   { id: 'Q4', contratoId: 'K1', orden: 4, concepto: 'Subida a tiendas', modalidad: 'hito', tipoValor: 'porcentaje', valor: 5, fechaProyectada: '2027-02-05', fechaOriginal: '2027-02-05', entregable: 'Publicación', estadoEntrega: 'Pendiente', facturaRequerida: false },
   { id: 'Q5', contratoId: 'K1', orden: 5, concepto: 'Por asignar', modalidad: 'mixta', tipoValor: 'porcentaje', valor: 0, fechaProyectada: null, fechaOriginal: null, entregable: '', estadoEntrega: 'Pendiente', facturaRequerida: false },
   { id: 'Q6', contratoId: 'K2', orden: 1, concepto: 'Firma del contrato', modalidad: 'hito', tipoValor: 'fijo', valor: 1000, fechaProyectada: '2026-10-05', fechaOriginal: '2026-10-05', entregable: 'Contrato firmado', estadoEntrega: 'Entregado', facturaRequerida: false },
-  { id: 'Q7', contratoId: 'K2', orden: 2, concepto: 'Entrega final', modalidad: 'hito', tipoValor: 'fijo', valor: 3000, fechaProyectada: '2026-12-20', fechaOriginal: '2026-12-20', entregable: 'Acta de entrega', estadoEntrega: 'Pendiente', facturaRequerida: true },
+  { id: 'Q7', contratoId: 'K2', orden: 2, concepto: 'Entrega final', modalidad: 'hito', tipoValor: 'fijo', valor: 3000, fechaProyectada: '2026-12-20', fechaOriginal: '2026-12-20', entregable: 'Acta de entrega', estadoEntrega: 'Atraso cliente', facturaRequerida: true },
   { id: 'Q8', contratoId: 'K3', orden: 1, concepto: 'Firma del contrato', modalidad: 'hito', tipoValor: 'porcentaje', valor: 20, fechaProyectada: '2026-08-15', fechaOriginal: '2026-08-15', entregable: 'Contrato firmado', estadoEntrega: 'Entregado', facturaRequerida: true, numeroFactura: 'FAC-0031', fechaFactura: '2026-08-15', vencimientoFactura: '2026-08-25' },
   { id: 'Q9', contratoId: 'K3', orden: 2, concepto: 'Avance 50 %', modalidad: 'hito', tipoValor: 'porcentaje', valor: 40, fechaProyectada: '2026-09-01', fechaOriginal: '2026-09-01', entregable: 'Módulo de agenda', estadoEntrega: 'Entregado', facturaRequerida: true, numeroFactura: 'FAC-0040', fechaFactura: '2026-09-01', vencimientoFactura: '2026-09-10' },
   { id: 'Q10', contratoId: 'K3', orden: 3, concepto: 'Entrega final', modalidad: 'hito', tipoValor: 'porcentaje', valor: 40, fechaProyectada: '2026-12-15', fechaOriginal: '2026-12-15', entregable: 'Acta de entrega', estadoEntrega: 'Pendiente', facturaRequerida: true },
@@ -75,6 +75,11 @@ export const documentosIniciales: Documento[] = [
     id: 'D3', proyectoId: 'P1', titulo: 'Minuta: reunión de arranque', categoria: 'minuta', version: 'v1.0', estado: 'aprobado', fecha: '2026-10-15', autor: 'Carlos Comercial', notas: '',
     minuta: {
       fecha: '2026-10-15',
+      enlace: 'https://meet.google.com/abc-defg-hij',
+      alcance: 'areas',
+      areas: ['direccion', 'comercial', 'desarrollo'],
+      organizadorId: 'U2',
+      organizador: 'Carlos Comercial',
       asistentes: ['María Torres', 'Carlos Comercial', 'Diego Developer'],
       acuerdos: ['El cobro del primer mes depende del avance mensual 1', 'Las revisiones del cliente se responden en 3 días hábiles'],
       pendientes: [
@@ -83,8 +88,23 @@ export const documentosIniciales: Documento[] = [
       ],
     },
   },
+  { id: 'D8', proyectoId: 'P3', titulo: 'Cotización Portal de proveedores', categoria: 'cotizacion', version: 'v1.2', estado: 'en revisión', fecha: '2026-10-22', autor: 'Carlos Comercial', notas: 'El cliente pidió ajustar el alcance del módulo de licitaciones.' },
   { id: 'D4', proyectoId: 'P2', titulo: 'Contrato CT-2026-02', categoria: 'contrato', version: 'v1.0', estado: 'firmado', fecha: '2026-10-03', autor: 'Carlos Comercial', notas: '' },
   { id: 'D5', proyectoId: 'P4', titulo: 'Contrato CT-2026-03', categoria: 'contrato', version: 'v1.1', estado: 'firmado', fecha: '2026-08-14', autor: 'Carlos Comercial', notas: 'Incluye anexo de soporte.' },
+  {
+    id: 'D7', proyectoId: 'P1', titulo: 'Reunión técnica: integración de pagos', categoria: 'minuta', version: 'v1.0', estado: 'aprobado', fecha: '2026-10-30', autor: 'Diego Developer', notas: '',
+    minuta: {
+      fecha: '2026-10-30',
+      hora: '10:00',
+      enlace: 'https://meet.google.com/xyz-pagos-dev',
+      alcance: 'equipo',
+      organizadorId: 'U4',
+      organizador: 'Diego Developer',
+      asistentes: ['Diego Developer', 'Sofía Backend'],
+      acuerdos: ['Usar la pasarela en modo pruebas hasta la entrega del avance 1'],
+      pendientes: [{ tarea: 'Documentar los endpoints de pago', responsable: 'Sofía Backend', fecha: '2026-11-04' }],
+    },
+  },
   { id: 'D6', proyectoId: 'P4', titulo: 'Acta de conformidad: módulo de agenda', categoria: 'acta', version: 'v1.0', estado: 'firmado', fecha: '2026-09-01', autor: 'Carlos Comercial', notas: 'Firmada por la Dra. Elena Ruiz.' },
 ]
 
@@ -95,13 +115,84 @@ export const desarrolladores: Desarrollador[] = [
 ]
 
 export const asignacionesIniciales: Asignacion[] = [
-  { id: 'A1', proyectoId: 'P1', desarrolladorId: 'DEV1', horasSemana: 20 },
-  { id: 'A2', proyectoId: 'P1', desarrolladorId: 'DEV2', horasSemana: 20 },
-  { id: 'A3', proyectoId: 'P2', desarrolladorId: 'DEV1', horasSemana: 10 },
-  { id: 'A4', proyectoId: 'P2', desarrolladorId: 'DEV3', horasSemana: 30 },
-  { id: 'A5', proyectoId: 'P3', desarrolladorId: 'DEV3', horasSemana: 10 },
-  { id: 'A6', proyectoId: 'P4', desarrolladorId: 'DEV2', horasSemana: 15 },
-  { id: 'A7', proyectoId: 'P4', desarrolladorId: 'DEV1', horasSemana: 10 },
+  { id: 'A1', proyectoId: 'P1', desarrolladorId: 'DEV1', rol: 'jefe', horasDiarias: 4, horasSemana: 20 },
+  { id: 'A2', proyectoId: 'P1', desarrolladorId: 'DEV2', rol: 'colaborador', horasDiarias: 4, horasSemana: 20 },
+  { id: 'A3', proyectoId: 'P2', desarrolladorId: 'DEV1', rol: 'colaborador', horasDiarias: 2, horasSemana: 10 },
+  { id: 'A4', proyectoId: 'P2', desarrolladorId: 'DEV3', rol: 'jefe', horasDiarias: 6, horasSemana: 30 },
+  { id: 'A5', proyectoId: 'P3', desarrolladorId: 'DEV3', rol: 'jefe', horasDiarias: 2, horasSemana: 10 },
+  { id: 'A6', proyectoId: 'P4', desarrolladorId: 'DEV2', rol: 'jefe', horasDiarias: 3, horasSemana: 15 },
+  { id: 'A7', proyectoId: 'P4', desarrolladorId: 'DEV1', rol: 'colaborador', horasDiarias: 2, horasSemana: 10 },
+]
+
+const generarHorasIniciales = (): RegistroHoras[] => {
+  const registros: RegistroHoras[] = []
+  const semanaActual = inicioSemana(HOY)
+  const diasTranscurridos = diasLaborablesTranscurridos(HOY)
+  asignacionesIniciales.forEach((asignacion, indiceAsignacion) => {
+    const proyecto = proyectos.find((p) => p.id === asignacion.proyectoId)
+    if (!proyecto || proyecto.fechaInicio > HOY) return
+    semanasEntre(proyecto.fechaInicio, HOY).forEach((semana, indiceSemana) => {
+      const patron = (indiceSemana + indiceAsignacion) % 4
+      const variacion = patron === 0 ? -2 : patron === 1 ? 1 : 0
+      const horas = semana === semanaActual ? (asignacion.horasDiarias ?? 0) * diasTranscurridos : Math.max(0, asignacion.horasSemana + variacion)
+      registros.push({
+        id: `H${registros.length + 1}`,
+        proyectoId: asignacion.proyectoId,
+        desarrolladorId: asignacion.desarrolladorId,
+        semana,
+        horas,
+        registradoPor: 'Datos de demostración',
+        fecha: semana,
+      })
+    })
+  })
+  return registros
+}
+
+export const horasIniciales: RegistroHoras[] = generarHorasIniciales()
+
+export const evidenciasIniciales: Evidencia[] = [
+  {
+    id: 'EV1', proyectoId: 'P4', desarrolladorId: 'DEV2', tipo: 'commit', titulo: 'API de agenda: endpoints de citas',
+    descripcion: 'CRUD de citas con validación de horarios ocupados y pruebas de integración.', fecha: '2026-10-20',
+    enlace: 'https://github.com/demo/sistema-citas/commit/8f3a2c1', commit: '8f3a2c1', rama: 'feature/agenda', cuotaId: 'Q10', horas: 6,
+    registradoPor: 'Sofía Backend', creadoEn: '2026-10-20T18:10:00.000Z', estado: 'validada',
+    revision: { por: 'Ana Dirección', fecha: '2026-10-21T09:00:00.000Z', comentario: 'Correcto, con pruebas.' },
+  },
+  {
+    id: 'EV2', proyectoId: 'P4', desarrolladorId: 'DEV1', tipo: 'commit', titulo: 'Pantalla de reserva de citas',
+    descripcion: 'Formulario de reserva con selector de horario disponible y confirmación.', fecha: '2026-10-24',
+    enlace: 'https://github.com/demo/sistema-citas/commit/b41d9e7', commit: 'b41d9e7', rama: 'feature/reserva', cuotaId: 'Q10', horas: 4,
+    registradoPor: 'Diego Developer', creadoEn: '2026-10-24T20:30:00.000Z', estado: 'validada',
+    revision: { por: 'Sofía Backend', fecha: '2026-10-25T10:00:00.000Z', comentario: '' },
+  },
+  {
+    id: 'EV3', proyectoId: 'P4', desarrolladorId: 'DEV1', tipo: 'actividad', titulo: 'Recordatorios por correo',
+    descripcion: 'Plantillas de correo y envío programado 24 h antes de cada cita.', fecha: '2026-10-28', horas: 3,
+    registradoPor: 'Diego Developer', creadoEn: '2026-10-28T19:00:00.000Z', estado: 'pendiente',
+  },
+  {
+    id: 'EV4', proyectoId: 'P1', desarrolladorId: 'DEV1', tipo: 'commit', titulo: 'Carrito y resumen del pedido',
+    descripcion: 'Carrito persistente y cálculo de totales con impuestos.', fecha: '2026-10-27',
+    enlace: 'https://github.com/demo/app-pedidos/commit/c0ffee1', commit: 'c0ffee1', rama: 'develop', cuotaId: 'Q2', horas: 5,
+    registradoPor: 'Diego Developer', creadoEn: '2026-10-27T21:00:00.000Z', estado: 'observada',
+    revision: { por: 'Ana Dirección', fecha: '2026-10-28T08:30:00.000Z', comentario: 'Falta adjuntar la captura del flujo en el móvil.' },
+  },
+]
+
+export const adicionalesIniciales: Adicional[] = [
+  {
+    id: 'AD1', proyectoId: 'P4', titulo: 'Recordatorios por WhatsApp',
+    descripcion: 'Enviar los recordatorios de cita también por WhatsApp, además del correo.',
+    solicitadoPor: 'Dra. Elena Ruiz', fechaSolicitud: '2026-10-20', montoEstimado: 900, diasEstimados: 10, estado: 'cotizado',
+    registradoPor: 'Carlos Comercial', creadoEn: '2026-10-20T15:00:00.000Z',
+  },
+  {
+    id: 'AD2', proyectoId: 'P1', titulo: 'Programa de puntos para clientes',
+    descripcion: 'Acumular puntos por cada pedido y canjearlos por descuentos.',
+    solicitadoPor: 'María Torres', fechaSolicitud: '2026-10-27', montoEstimado: 0, diasEstimados: 0, estado: 'solicitado',
+    registradoPor: 'Carlos Comercial', creadoEn: '2026-10-27T17:30:00.000Z',
+  },
 ]
 
 export const almacenInicial: Almacen = {
@@ -113,4 +204,8 @@ export const almacenInicial: Almacen = {
   documentos: documentosIniciales,
   desarrolladores,
   asignaciones: asignacionesIniciales,
+  horas: horasIniciales,
+  horasExtra: [],
+  evidencias: evidenciasIniciales,
+  adicionales: adicionalesIniciales,
 }

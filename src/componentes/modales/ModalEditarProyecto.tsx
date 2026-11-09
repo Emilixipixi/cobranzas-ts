@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const ESTADOS_PROYECTO = ['Prototipo', 'En desarrollo', 'En entrega', 'Cerrado']
-const ESTADOS_PROTOTIPO = ['Pendiente', 'Presentado', 'Validado']
+export const ESTADOS_PROTOTIPO = ['Pendiente', 'Presentado', 'Validado']
 
 export default function ModalEditarProyecto({ proyecto, onCerrar }: Props) {
   const { usuarios } = useAuth()
@@ -37,6 +37,7 @@ export default function ModalEditarProyecto({ proyecto, onCerrar }: Props) {
       responsableId: formulario.responsableId,
       estado: formulario.estado,
       prototipo: formulario.prototipo,
+      fechaPrototipo: formulario.fechaPrototipo || undefined,
       fechaInicio: formulario.fechaInicio,
       fechaEntrega: formulario.fechaEntrega,
       mesesOfrecidos,
@@ -84,6 +85,10 @@ export default function ModalEditarProyecto({ proyecto, onCerrar }: Props) {
             <select className={entrada} value={formulario.prototipo} onChange={(e) => cambiar('prototipo', e.target.value)}>
               {ESTADOS_PROTOTIPO.map((s) => <option key={s}>{s}</option>)}
             </select>
+          </div>
+          <div>
+            <label className={etiquetaCampo}>Presentación del prototipo</label>
+            <input className={entrada} type="date" value={formulario.fechaPrototipo ?? ''} onChange={(e) => cambiar('fechaPrototipo', e.target.value || undefined)} />
           </div>
           <div>
             <label className={etiquetaCampo}>Fecha de inicio</label>

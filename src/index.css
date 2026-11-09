@@ -29,3 +29,46 @@ body {
     @apply bg-slate-50/70;
   }
 }
+
+@keyframes campana {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* Pantalla de inicio de sesión */
+.login-cuadricula {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 40% 45%, black 20%, transparent 75%);
+}
+
+@keyframes login-mancha {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.1); }
+}
+
+@keyframes login-flotar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes login-trazo {
+  from { stroke-dashoffset: 420; }
+  to { stroke-dashoffset: 0; }
+}
+
+.login-mancha { animation: login-mancha 14s ease-in-out infinite; }
+.login-mancha-lenta { animation: login-mancha 20s ease-in-out infinite reverse; }
+.login-flotar { animation: login-flotar 6s ease-in-out infinite; }
+.login-flotar-lento { animation: login-flotar 8s ease-in-out 1s infinite; }
+.login-trazo { stroke-dasharray: 420; animation: login-trazo 2.2s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .login-mancha, .login-mancha-lenta, .login-flotar, .login-flotar-lento, .login-trazo { animation: none; }
+}

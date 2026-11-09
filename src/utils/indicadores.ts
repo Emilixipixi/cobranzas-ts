@@ -91,12 +91,14 @@ export const antiguedadCartera = (filas: FilaCartera[]) => {
     { rango: '61-90 días', min: 61, max: 90 },
     { rango: 'Más de 90', min: 91, max: Infinity },
   ]
-  return rangos.map((r) => ({
-    rango: r.rango,
-    Vencido: redondear(
-      filas.filter((f) => f.estado === 'Vencida' && f.diasMora >= r.min && f.diasMora <= r.max).reduce((suma, f) => suma + f.saldo, 0)
-    ),
-  }))
+  return rangos.map((r) => {
+    const enRango = filas.filter((f) => f.estado === 'Vencida' && f.diasMora >= r.min && f.diasMora <= r.max)
+    return {
+      rango: r.rango,
+      Vencido: redondear(enRango.reduce((suma, f) => suma + f.saldo, 0)),
+      cuotas: enRango.length,
+    }
+  })
 }
 
 export const proximosVencimientos = (filas: FilaCartera[], dias: number): FilaCartera[] =>
