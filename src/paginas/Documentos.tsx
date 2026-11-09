@@ -83,7 +83,6 @@ export default function Documentos() {
     <>
       <Encabezado titulo="Documentación" subtitulo={ocultas.length ? "Documentos de los proyectos a los que tu área tiene acceso" : "Contratos, cotizaciones, actas, anexos y minutas de todos los proyectos"} />
 
-      {usuario?.rol === 'administrador' && <PermisosDocumentos />}
       {ocultas.length > 0 && (
         <p className="mb-5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
           Por la política de documentos de la empresa, tu área no tiene acceso a: <strong>{ocultas.map((c) => c.etiqueta.toLowerCase()).join(', ')}</strong>.
@@ -127,6 +126,8 @@ export default function Documentos() {
           </div>
         </Panel>
       </div>
+
+      {usuario?.rol === 'administrador' && <PermisosDocumentos />}
 
       <Panel
         titulo={`Listado de documentos (${lista.length})`}
