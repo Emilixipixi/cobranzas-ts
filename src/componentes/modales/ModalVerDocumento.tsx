@@ -8,6 +8,7 @@ import { formatoFecha } from '../../utils/finanzas'
 import type { ArchivoAdjunto } from '../../tipos'
 import EtiquetaEstado from '../EtiquetaEstado'
 import { ETIQUETAS_CATEGORIA } from '../expediente/PestanaDocumentos'
+import { puedeVerCategoria } from '../../utils/permisosDocumentos'
 import Modal from '../Modal'
 import SelectorArchivo from '../SelectorArchivo'
 
@@ -37,8 +38,9 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
 
 export default function ModalVerDocumento({ documentoId, puedeEditar, onCerrar }: Props) {
   const { usuario } = useAuth()
-  const { documentos, proyectos, adjuntarArchivoDocumento } = useDatos()
-  const documento = documentos.find((d) => d.id === documentoId)
+  const { documentos, proyectos, adjuntarArchivoDocumento, permisosDocumentos } = useDatos()
+  const encontrado = documentos.find((d) => d.id === documentoId)
+  const documento = encontrado && puedeVerCategoria(usuario?.rol, encontrado.categoria, permisosDocumentos) ? encontrado : undefined
   const proyecto = proyectos.find((p) => p.id === documento?.proyectoId)
   const archivo = documento?.archivo
   const [carga, setCarga] = useState<Carga>({ estado: 'cargando' })

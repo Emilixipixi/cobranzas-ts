@@ -1,5 +1,6 @@
 import { diasLaborablesTranscurridos, semanasEntre, inicioSemana } from '../utils/semanas'
 import type { Almacen, Asignacion, Cliente, Cobro, Contrato, Cuota, Desarrollador, Documento, Proyecto, RegistroHoras, Usuario, Evidencia, Adicional } from '../tipos'
+import { PERMISOS_DOCUMENTOS_INICIALES } from '../utils/permisosDocumentos'
 export const HOY = '2026-10-29'
 
 export const CODIGO_2FA = '123456'
@@ -208,4 +209,5 @@ export const almacenInicial: Almacen = {
   horasExtra: [],
   evidencias: evidenciasIniciales,
   adicionales: adicionalesIniciales,
+  permisosDocumentos: PERMISOS_DOCUMENTOS_INICIALES,
 }

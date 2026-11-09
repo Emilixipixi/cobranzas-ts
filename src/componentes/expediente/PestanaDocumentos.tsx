@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { CalendarPlus, Eye, FilePlus2, FileText, Paperclip } from 'lucide-react'
 import { useAuth } from '../../contextos/AuthContext'
 import { useDatos } from '../../contextos/DatosContext'
-import { proyectosParaAgendar, puedeEditarReunion, puedeVerReunion } from '../../utils/reuniones'
+import { puedeVerDocumento } from '../../utils/permisosDocumentos'
+import { proyectosParaAgendar, puedeEditarReunion } from '../../utils/reuniones'
 import InsigniaReunion from '../InsigniaReunion'
 import { formatoFecha } from '../../utils/finanzas'
 import EtiquetaEstado from '../EtiquetaEstado'
@@ -27,12 +28,12 @@ export const ETIQUETAS_CATEGORIA: Record<CategoriaDocumento, string> = {
 
 export default function PestanaDocumentos({ proyectoId, puedeEditar }: Props) {
   const { usuario } = useAuth()
-  const { documentos, proyectos, desarrolladores, asignaciones } = useDatos()
+  const { documentos, proyectos, desarrolladores, asignaciones, permisosDocumentos } = useDatos()
   const [modal, setModal] = useState<'documento' | 'minuta' | null>(null)
   const [viendo, setViendo] = useState<string | null>(null)
   const puedeAgendar = proyectosParaAgendar(usuario, proyectos, desarrolladores, asignaciones).some((p) => p.id === proyectoId)
   const lista = documentos
-    .filter((d) => d.proyectoId === proyectoId && puedeVerReunion(usuario, d, desarrolladores, asignaciones))
+    .filter((d) => d.proyectoId === proyectoId && puedeVerDocumento(usuario, d, permisosDocumentos, desarrolladores, asignaciones))
     .sort((a, b) => b.fecha.localeCompare(a.fecha))
 
   return (

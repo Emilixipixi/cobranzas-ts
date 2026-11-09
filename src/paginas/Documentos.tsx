@@ -11,7 +11,8 @@ import { useDatos } from '../contextos/DatosContext'
 import ModalVerDocumento from '../componentes/modales/ModalVerDocumento'
 import { entradaCompacta } from '../utils/estilos'
 import { formatoFecha } from '../utils/finanzas'
-import { puedeVerReunion } from '../utils/reuniones'
+import { CATEGORIAS_CONTROLADAS, puedeVerCategoria, puedeVerDocumento } from '../utils/permisosDocumentos'
+import PermisosDocumentos from '../componentes/PermisosDocumentos'
 import type { CategoriaDocumento, EstadoDocumento } from '../tipos'
 
 const COLORES_CATEGORIA: Record<CategoriaDocumento, string> = {
@@ -37,9 +38,10 @@ const ETIQUETAS_ESTADO_DOC: Record<EstadoDocumento, string> = {
 }
 
 export default function Documentos() {
-  const { documentos: todos, proyectos, desarrolladores, asignaciones } = useDatos()
+  const { documentos: todos, proyectos, desarrolladores, asignaciones, permisosDocumentos } = useDatos()
   const { usuario } = useAuth()
-  const documentos = todos.filter((d) => puedeVerReunion(usuario, d, desarrolladores, asignaciones))
+  const documentos = todos.filter((d) => puedeVerDocumento(usuario, d, permisosDocumentos, desarrolladores, asignaciones))
+  const ocultas = CATEGORIAS_CONTROLADAS.filter((c) => !puedeVerCategoria(usuario?.rol, c.id, permisosDocumentos))
   const puedeEditar = usuario?.rol === 'administrador' || usuario?.rol === 'comercial'
   const [viendo, setViendo] = useState<string | null>(null)
   const [categoria, setCategoria] = useState('todas')
@@ -56,7 +58,7 @@ export default function Documentos() {
   const borradores = documentos.filter((d) => d.estado === 'borrador').length
   const porcentajeCerrados = documentos.length ? Math.round((cerrados / documentos.length) * 100) : 0
 
-  const segmentosCategoria = (Object.keys(ETIQUETAS_CATEGORIA) as CategoriaDocumento[]).map((c) => ({
+  const segmentosCategoria = (Object.keys(ETIQUETAS_CATEGORIA) as CategoriaDocumento[]).filter((c) => puedeVerCategoria(usuario?.rol, c, permisosDocumentos)).map((c) => ({
     id: c,
     nombre: ETIQUETAS_CATEGORIA[c],
     valor: documentos.filter((d) => d.categoria === c).length,
@@ -79,7 +81,14 @@ export default function Documentos() {
 
   return (
     <>
-      <Encabezado titulo="Documentación" subtitulo="Contratos, cotizaciones, actas, anexos y minutas de todos los proyectos" />
+      <Encabezado titulo="Documentación" subtitulo={ocultas.length ? "Documentos de los proyectos a los que tu área tiene acceso" : "Contratos, cotizaciones, actas, anexos y minutas de todos los proyectos"} />
+
+      {usuario?.rol === 'administrador' && <PermisosDocumentos />}
+      {ocultas.length > 0 && (
+        <p className="mb-5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          Por la política de documentos de la empresa, tu área no tiene acceso a: <strong>{ocultas.map((c) => c.etiqueta.toLowerCase()).join(', ')}</strong>.
+        </p>
+      )}
 
       <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <TarjetaMetrica titulo="Documentos" valor={String(documentos.length)} detalle={`En ${porProyecto.length} proyectos`} icono={FolderOpen} />
@@ -127,7 +136,7 @@ export default function Documentos() {
             <input className={`${entradaCompacta} w-56`} placeholder="Buscar documento o proyecto" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
             <select className={`${entradaCompacta} w-auto`} value={categoria} onChange={(e) => setCategoria(e.target.value)}>
               <option value="todas">Todas las categorías</option>
-              {Object.entries(ETIQUETAS_CATEGORIA).map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
+              {segmentosCategoria.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
             </select>
           </div>
         }

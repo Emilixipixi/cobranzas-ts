@@ -22,6 +22,7 @@ import type { EtapaComercial } from '../../utils/comercial'
 import { entradaCompacta } from '../../utils/estilos'
 import { diasEntre, formatoFecha, formatoMoneda, montoCuota, resumenPlan } from '../../utils/finanzas'
 import { pendientesDeDecision } from '../../utils/adicionales'
+import { puedeVerCategoria } from '../../utils/permisosDocumentos'
 import { puedeVerReunion } from '../../utils/reuniones'
 
 const enDias = (dias: number) => (dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : dias === -1 ? 'ayer' : dias < 0 ? `hace ${-dias} días` : `en ${dias} días`)
@@ -44,7 +45,7 @@ type Modal = 'cliente' | 'proyecto' | 'reunion' | null
 
 export default function DashboardComercial() {
   const { usuario } = useAuth()
-  const { proyectos: todos, clientes, contratos, cuotas, documentos, desarrolladores, asignaciones, adicionales, programarPrototipo } = useDatos()
+  const { proyectos: todos, clientes, contratos, cuotas, documentos, desarrolladores, asignaciones, adicionales, permisosDocumentos, programarPrototipo } = useDatos()
   const esComercial = usuario?.rol === 'comercial'
   const puedeGestionar = esComercial || usuario?.rol === 'administrador'
   const [soloMios, setSoloMios] = useState(esComercial)
@@ -83,7 +84,7 @@ export default function DashboardComercial() {
   const validados = proyectos.length - prototipos.length
 
   // 4–10. Pendientes
-  const cotizaciones = cotizacionesAbiertas(documentosVista)
+  const cotizaciones = puedeVerCategoria(usuario?.rol, 'cotizacion', permisosDocumentos) ? cotizacionesAbiertas(documentosVista) : []
   const planes = contratosVista.map((k) => ({ contrato: k, plan: resumenPlan(k, cuotas) })).filter((x) => x.plan.estado !== 'completo')
   const metas = metasSinDefinir(cuotasVista)
   const reuniones = documentos.filter((d) => d.minuta && ids.has(d.proyectoId) && puedeVerReunion(usuario, d, desarrolladores, asignaciones))

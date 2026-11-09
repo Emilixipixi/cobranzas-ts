@@ -107,6 +107,10 @@ export interface Cobro {
 }
 
 export type CategoriaDocumento = 'contrato' | 'cotizacion' | 'acta' | 'anexo' | 'minuta'
+/** Categorías cuya visibilidad por rol decide el administrador */
+export type CategoriaControlada = Exclude<CategoriaDocumento, 'minuta'>
+/** Roles (además del administrador) que pueden ver cada categoría de documento */
+export type PermisosDocumentos = Record<CategoriaControlada, Rol[]>
 export type EstadoDocumento = 'borrador' | 'en revisión' | 'firmado' | 'aprobado'
 
 export interface PendienteMinuta {
@@ -195,6 +199,7 @@ export interface Almacen {
   horasExtra: AprobacionHorasExtra[]
   evidencias: Evidencia[]
   adicionales: Adicional[]
+  permisosDocumentos: PermisosDocumentos
 }
 
 export interface AprobacionHorasExtra {

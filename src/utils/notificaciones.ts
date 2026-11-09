@@ -2,6 +2,7 @@ import { HOY } from '../datos/datosEjemplo'
 import type { Almacen, Rol, Usuario } from '../tipos'
 import { diasEntre, estadoCuota, fechaVencimiento, formatoFecha, formatoMoneda, resumenPlan, saldoCuota } from './finanzas'
 import { jefeDeProyecto } from './equipo'
+import { puedeVerCategoria } from './permisosDocumentos'
 import { areasDeReunion } from './reuniones'
 import { etiquetaSemana } from './semanas'
 
@@ -141,7 +142,7 @@ const deComercial = (a: Almacen): Notificacion[] => {
     })
   })
   a.documentos.forEach((d) => {
-    if (d.estado !== 'en revisión') return
+    if (d.estado !== 'en revisión' || !puedeVerCategoria('comercial', d.categoria, a.permisosDocumentos)) return
     const proyecto = a.proyectos.find((p) => p.id === d.proyectoId)
     salida.push({
       id: `com-doc-${d.id}`, departamento: 'comercial', prioridad: 'info', ruta: '/documentos', fecha: d.fecha,

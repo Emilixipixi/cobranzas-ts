@@ -4,6 +4,7 @@ import { useAuth } from '../../contextos/AuthContext'
 import { useDatos } from '../../contextos/DatosContext'
 import { botonPrimario, botonSecundario, entrada, etiquetaCampo } from '../../utils/estilos'
 import type { CategoriaDocumento, EstadoDocumento } from '../../tipos'
+import { puedeVerCategoria } from '../../utils/permisosDocumentos'
 import Modal from '../Modal'
 import SelectorArchivo from '../SelectorArchivo'
 import { subirArchivoDocumento } from './ModalVerDocumento'
@@ -24,9 +25,10 @@ const ESTADOS: EstadoDocumento[] = ['borrador', 'en revisión', 'firmado', 'apro
 
 export default function ModalDocumento({ proyectoId, onCerrar }: Props) {
   const { usuario } = useAuth()
-  const { agregarDocumento } = useDatos()
+  const { agregarDocumento, permisosDocumentos } = useDatos()
+  const categorias = CATEGORIAS.filter((c) => puedeVerCategoria(usuario?.rol, c.id, permisosDocumentos))
   const [titulo, setTitulo] = useState('')
-  const [categoria, setCategoria] = useState<CategoriaDocumento>('cotizacion')
+  const [categoria, setCategoria] = useState<CategoriaDocumento>(categorias[0]?.id ?? 'anexo')
   const [version, setVersion] = useState('v1.0')
   const [estado, setEstado] = useState<EstadoDocumento>('borrador')
   const [notas, setNotas] = useState('')
@@ -58,7 +60,7 @@ export default function ModalDocumento({ proyectoId, onCerrar }: Props) {
           <div>
             <label className={etiquetaCampo}>Categoría</label>
             <select className={entrada} value={categoria} onChange={(e) => setCategoria(e.target.value as CategoriaDocumento)}>
-              {CATEGORIAS.map((c) => <option key={c.id} value={c.id}>{c.etiqueta}</option>)}
+              {categorias.map((c) => <option key={c.id} value={c.id}>{c.etiqueta}</option>)}
             </select>
           </div>
           <div>

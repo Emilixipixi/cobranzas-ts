@@ -10,7 +10,7 @@ import { etiquetaSemana, inicioSemana } from '../utils/semanas'
 import { useAuditoria } from './AuditoriaContext'
 import { useAuth } from './AuthContext'
 import type {
-  Adicional, Almacen, AprobacionHorasExtra, ArchivoAdjunto, Asignacion, Cliente, Cobro, Contrato, Cuota, Desarrollador, Documento, EstadoEvidencia, Evidencia, Minuta, Proyecto, RegistroHoras, RolEquipo,
+  Adicional, Almacen, AprobacionHorasExtra, ArchivoAdjunto, Asignacion, Cliente, Cobro, Contrato, Cuota, Desarrollador, CategoriaControlada, Documento, EstadoEvidencia, Evidencia, Minuta, Proyecto, RegistroHoras, Rol, RolEquipo,
 } from '../tipos'
 
 export interface DatosCobro {
@@ -81,6 +81,8 @@ interface DatosContextoValor {
   horasExtra: AprobacionHorasExtra[]
   evidencias: Evidencia[]
   adicionales: Adicional[]
+  permisosDocumentos: Almacen['permisosDocumentos']
+  cambiarPermisoDocumento: (categoria: CategoriaControlada, rol: Exclude<Rol, 'administrador'>, permitido: boolean) => string | null
   registrarAdicional: (proyectoId: string, datos: DatosAdicional) => string | null
   editarAdicional: (adicionalId: string, datos: DatosAdicional, cotizar?: boolean) => string | null
   aprobarAdicional: (adicionalId: string, datos: AprobacionAdicional) => string | null
@@ -700,6 +702,17 @@ export function DatosProvider({ children }: { children: ReactNode }) {
 
   const puedeGestionarComercial = () => usuario?.rol === 'administrador' || usuario?.rol === 'comercial'
 
+  // ----- Visibilidad de documentos por rol -----
+  const cambiarPermisoDocumento = (categoria: CategoriaControlada, rol: Exclude<Rol, 'administrador'>, permitido: boolean): string | null => {
+    if (usuario?.rol !== 'administrador') return 'Solo el administrador puede cambiar quién ve cada tipo de documento'
+    const actuales = almacen.permisosDocumentos[categoria] ?? []
+    if (permitido === actuales.includes(rol)) return null
+    const siguientes = permitido ? [...actuales, rol] : actuales.filter((r) => r !== rol)
+    registrar('Cambió permisos de documentos', `${categoria}: ${permitido ? 'ahora puede verlos' : 'ya no puede verlos'} ${rol}`)
+    setAlmacen((previo) => ({ ...previo, permisosDocumentos: { ...previo.permisosDocumentos, [categoria]: siguientes } }))
+    return null
+  }
+
   // ----- Adicionales y ampliaciones -----
   const validarAdicional = (datos: DatosAdicional): string | null => {
     if (!datos.titulo.trim()) return 'Describe brevemente el adicional'
@@ -994,6 +1007,7 @@ export function DatosProvider({ children }: { children: ReactNode }) {
         eliminarProyecto,
         crearProyecto,
         crearCliente,
+        cambiarPermisoDocumento,
         registrarAdicional,
         editarAdicional,
         aprobarAdicional,

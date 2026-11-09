@@ -21,7 +21,7 @@ import { useDatos } from '../contextos/DatosContext'
 import { HOY } from '../datos/datosEjemplo'
 import { diasEntre, formatoFecha, formatoMoneda, resumenPlan } from '../utils/finanzas'
 import { totalDeProyecto } from '../utils/horas'
-import { puedeVerReunion } from '../utils/reuniones'
+import { puedeVerDocumento } from '../utils/permisosDocumentos'
 import { datosDeProyecto, filasCartera, progresoEntrega, resumenFinanciero } from '../utils/indicadores'
 
 type Pestana = 'cobranzas' | 'documentos' | 'adicionales' | 'equipo' | 'evidencias' | 'horas' | 'auditoria'
@@ -47,7 +47,7 @@ export default function Expediente() {
   const { usuario, usuarios } = useAuth()
   const navegar = useNavigate()
   const { registros } = useAuditoria()
-  const { proyectos, clientes, contratos, cuotas, cobros, documentos, asignaciones, horas, evidencias, desarrolladores, adicionales } = useDatos()
+  const { proyectos, clientes, contratos, cuotas, cobros, documentos, asignaciones, horas, evidencias, desarrolladores, adicionales, permisosDocumentos } = useDatos()
   const [parametros, setParametros] = useSearchParams()
   const [pestana, setPestana] = useState<Pestana>(usuario?.rol === 'desarrollador' ? 'equipo' : 'cobranzas')
 
@@ -89,7 +89,7 @@ export default function Expediente() {
 
   const pestanas: { id: Pestana; titulo: string; icono: LucideIcon; cantidad: number; visible: boolean }[] = [
     { id: 'cobranzas', titulo: 'Cobranzas e hitos', icono: Receipt, cantidad: datos.cuotas.length, visible: verDinero },
-    { id: 'documentos', titulo: 'Expediente documental', icono: FolderOpen, cantidad: documentos.filter((d) => d.proyectoId === proyecto.id && puedeVerReunion(usuario, d, desarrolladores, asignaciones)).length, visible: true },
+    { id: 'documentos', titulo: 'Expediente documental', icono: FolderOpen, cantidad: documentos.filter((d) => d.proyectoId === proyecto.id && puedeVerDocumento(usuario, d, permisosDocumentos, desarrolladores, asignaciones)).length, visible: true },
     { id: 'adicionales', titulo: 'Adicionales', icono: FilePlus2, cantidad: adicionales.filter((a) => a.proyectoId === proyecto.id && (verDinero || a.estado === 'aprobado')).length, visible: true },
     { id: 'equipo', titulo: 'Equipo y plazos', icono: Users, cantidad: asignaciones.filter((a) => a.proyectoId === proyecto.id).length, visible: true },
     { id: 'evidencias', titulo: 'Evidencias', icono: GitCommitHorizontal, cantidad: evidencias.filter((e) => e.proyectoId === proyecto.id).length, visible: true },

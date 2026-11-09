@@ -55,10 +55,10 @@ export default function Campana() {
   const contenedor = useRef<HTMLDivElement>(null)
   const avisado = useRef<string | null>(null)
 
-  const { proyectos, contratos, cuotas, cobros, documentos, desarrolladores, asignaciones, horas, horasExtra, evidencias, adicionales, clientes, marcarHorasExtraVistas } = datos
+  const { proyectos, contratos, cuotas, cobros, documentos, desarrolladores, asignaciones, horas, horasExtra, evidencias, adicionales, permisosDocumentos, clientes, marcarHorasExtraVistas } = datos
   const todas = useMemo(
-    () => (usuario ? notificacionesPara({ proyectos, contratos, cuotas, cobros, documentos, desarrolladores, asignaciones, horas, horasExtra, evidencias, adicionales, clientes }, usuario) : []),
-    [usuario, proyectos, contratos, cuotas, cobros, documentos, desarrolladores, asignaciones, horas, horasExtra, evidencias, adicionales, clientes]
+    () => (usuario ? notificacionesPara({ proyectos, contratos, cuotas, cobros, documentos, desarrolladores, asignaciones, horas, horasExtra, evidencias, adicionales, permisosDocumentos, clientes }, usuario) : []),
+    [usuario, proyectos, contratos, cuotas, cobros, documentos, desarrolladores, asignaciones, horas, horasExtra, evidencias, adicionales, permisosDocumentos, clientes]
   )
 
   useEffect(() => {
